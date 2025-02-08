@@ -74,7 +74,7 @@ public class PersistentScalableHashedIndex extends PersistentHashedIndex{
   public void insert(String token, int docID, int offset){
     super.insert(token, docID, offset);
     indexCounter++;
-    if(indexCounter >= 10000){ // *4 for davis
+    if(indexCounter >= TABLESIZE * 3){ // *4 for davis
       writeTempIndex();
       
     }
