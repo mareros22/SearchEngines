@@ -132,31 +132,36 @@ public class Searcher {
             PostingsList ret = new PostingsList();
             PostingsEntry e;
             String word;
-            double idf, tdf, dft, lend;
+            double idf, tf, dft, lend, tf_idf;
             int numdocs = index.docNames.keySet().size();
             double scores[] = new double[numdocs];
-            double lengths[] = new double[numdocs];
-            for(int docID : index.docLengths.keySet()){
-                lengths[docID] = index.docLengths.get(docID);
-            }
+            double length[] = new double[numdocs];
+            boolean multiterm = query.queryterm.size() > 1;
             for(Query.QueryTerm qt : query.queryterm){
                 word = qt.term;
                 aux1 = index.getPostings(word);
                 for(PostingsEntry pe : aux1.getList()){
                     int id = pe.docID;
                     lend = index.docLengths.get(id);
-                    tdf = pe.offsets.size();
-                    dft = index.getPostings(word).size();
+                    tf = pe.offsets.size();
+                    dft = aux1.size();
                     idf = Math.log(numdocs / dft);
-                    scores[id] += tdf * idf / lend;
+                    tf_idf = tf * idf / lend;
+                    if(multiterm){
+                        length[id] = 1;
+                    }else{
+                        length[id] = lend;
+                    }
+                    scores[id] += tf_idf;
+                    
                 }
             }
-            System.out.println("-----Scores-----");
-            System.out.println(Arrays.toString(scores));
+            // System.out.println("-----Scores-----");
             for(int i = 0; i < numdocs; i++){
-                if(scores[i] > 0 && lengths[i] > 0){
-                    e = new PostingsEntry(i, scores[i]/lengths[i]);
+                if(scores[i] > 0){
+                    e = new PostingsEntry(i, scores[i]);
                     ret.addEntry(e);
+                    // System.out.println(index.docNames.get(i) + " : " + scores[i]);
                 }
 
                 
