@@ -10,6 +10,7 @@ package ir;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 
 
 /**
@@ -20,6 +21,7 @@ public class HashedIndex implements Index {
 
     /** The index as a hashtable. */
     private HashMap<String,PostingsList> index = new HashMap<String,PostingsList>();
+    
 
 
     /**
@@ -33,9 +35,16 @@ public class HashedIndex implements Index {
         l = index.get(token);
         if(l != null){ // token has been inserted to index already
             p = l.get(l.size() - 1); // if there is an entry for this document it will be the most recent
+            if(docVectorLengths.get(docID) == null){
+                docVectorLengths.put(docID, (double)0);
+            }
+            double currentLength = docVectorLengths.get(docID);
             if(p.docID != docID){
                 p = new PostingsEntry(docID);
+                docVectorLengths.put(docID, currentLength + (2*l.size()) + 1);
             }else{
+                // System.out.println("duplicate docID " + docID);
+                docVectorLengths.put(docID, currentLength + (2*l.size()) + 1);
                 p.addToEntry(offset);
                 return; // document already indexed to this term
             }
@@ -51,13 +60,22 @@ public class HashedIndex implements Index {
 
     /**
      *  Returns the postings for a specific term, or null
-     *  if the term is not in the index.
+     *  if the term is not in tashe index.
      */
     public PostingsList getPostings( String token ) {
         //
         // REPLACE THE STATEMENT BELOW WITH YOUR CODE
         //
         return index.get(token);
+    }
+
+    public int numTerms(){
+        return index.keySet().size();
+    }
+
+    
+    public Set<String> keySet(){
+        return index.keySet();
     }
 
 

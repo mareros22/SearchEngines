@@ -16,6 +16,7 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
     public int docID;
     public double score = 0;
     public ArrayList<Integer> offsets;
+    public double[] vector;
 
     /**
      *  PostingsEntries are compared by their score (only relevant
@@ -28,6 +29,9 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
        return Double.compare( other.score, score );
     }
 
+    public double[] getVector(){
+        return vector;
+    }
     
     //
     // YOUR CODE HERE

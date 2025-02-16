@@ -460,4 +460,13 @@ public class PersistentHashedIndex implements Index {
         return ret;
 
     }
+
+    public int numTerms(){
+        return index.keySet().size();
+    }
+
+    
+    public Set<String> keySet(){
+        return index.keySet();
+    }
 }

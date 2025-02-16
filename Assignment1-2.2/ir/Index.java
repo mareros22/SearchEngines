@@ -9,7 +9,8 @@ package ir;
 
 import java.util.HashMap;
 import java.util.Iterator;
-
+import java.util.Set;
+import java.util.ArrayList;
 /**
  *  Defines some common data structures and methods that all types of
  *  index should implement.
@@ -33,7 +34,11 @@ public interface Index {
     /** This method is called on exit. */
     public void cleanup();
 
+    public int numTerms();
 
+    public Set<String> keySet();
+
+    public HashMap<Integer, Double> docVectorLengths = new HashMap<>();
 
 }
 

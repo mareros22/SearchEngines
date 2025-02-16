@@ -8,6 +8,8 @@
 package ir;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 public class PostingsList {
     
@@ -82,6 +84,14 @@ public class PostingsList {
 
     public void setList(ArrayList<PostingsEntry> newList){
         this.list = newList;
+    }
+
+    public ArrayList<PostingsEntry> getList(){
+        return list;
+    }
+
+    public void sortList(){
+        Collections.sort(this.list);
     }
 
 }
