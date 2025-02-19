@@ -1,0 +1,143 @@
+// Source code is decompiled from a .class file using FernFlower decompiler.
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.StringTokenizer;
+
+public class PageRank {
+   static final int MAX_NUMBER_OF_DOCS = 2000000;
+   HashMap<String, Integer> docNumber = new HashMap();
+   String[] docName = new String[2000000];
+   HashMap<Integer, HashMap<Integer, Boolean>> link = new HashMap();
+   int[] out = new int[2000000];
+   static final double BORED = 0.15;
+   static final double EPSILON = 1.0E-4;
+
+   public PageRank(String var1) {
+      int var2 = this.readDocs(var1);
+      this.iterate(var2, 1000);
+   }
+
+   int readDocs(String var1) {
+      int var2 = 0;
+
+      try {
+         System.err.print("Reading file... ");
+         BufferedReader var3 = new BufferedReader(new FileReader(var1));
+
+         String var4;
+         while((var4 = var3.readLine()) != null && var2 < 2000000) {
+            int var5 = var4.indexOf(";");
+            String var6 = var4.substring(0, var5);
+            Integer var7 = (Integer)this.docNumber.get(var6);
+            if (var7 == null) {
+               var7 = var2++;
+               this.docNumber.put(var6, var7);
+               this.docName[var7] = var6;
+            }
+
+            StringTokenizer var8 = new StringTokenizer(var4.substring(var5 + 1), ",");
+
+            while(var8.hasMoreTokens() && var2 < 2000000) {
+               String var9 = var8.nextToken();
+               Integer var10 = (Integer)this.docNumber.get(var9);
+               if (var10 == null) {
+                  var10 = var2++;
+                  this.docNumber.put(var9, var10);
+                  this.docName[var10] = var9;
+               }
+
+               if (this.link.get(var7) == null) {
+                  this.link.put(var7, new HashMap());
+               }
+
+               if (((HashMap)this.link.get(var7)).get(var10) == null) {
+                  ((HashMap)this.link.get(var7)).put(var10, true);
+                  int var10002 = this.out[var7]++;
+               }
+            }
+         }
+
+         if (var2 >= 2000000) {
+            System.err.print("stopped reading since documents table is full. ");
+         } else {
+            System.err.print("done. ");
+         }
+      } catch (FileNotFoundException var11) {
+         System.err.println("File " + var1 + " not found!");
+      } catch (IOException var12) {
+         System.err.println("Error reading file " + var1);
+      }
+
+      System.err.println("Read " + var2 + " number of documents");
+      return var2;
+   }
+
+   void iterate(int var1, int var2) {
+      double[] var3 = new double[var1];
+      double[] var4 = new double[var1];
+      int var5 = 0;
+      Arrays.fill(var4, 1.0 / (double)var1);
+      System.out.println(var1);
+      System.out.println(1.0 / (double)var1);
+
+      int var12;
+      while(!Arrays.equals(var3, var4) && var5 < var2) {
+         var3 = var4;
+         var4 = new double[var1];
+         Arrays.fill(var4, 0.15 / (double)var1);
+         Iterator var7 = this.link.keySet().iterator();
+
+         while(var7.hasNext()) {
+            int var8 = (Integer)var7.next();
+            double var9 = var3[var8];
+            HashMap var6 = (HashMap)this.link.get(var8);
+
+            for(Iterator var11 = var6.keySet().iterator(); var11.hasNext(); var4[var12] += var9 * 0.85 / (double)this.out[var8]) {
+               var12 = (Integer)var11.next();
+            }
+         }
+
+         ++var5;
+      }
+
+      double var14 = 0.0;
+
+      int var15;
+      for(var15 = 0; var15 < var1; ++var15) {
+         var14 += var4[var15];
+      }
+
+      System.out.println("Test: " + var14);
+
+      for(var12 = 0; var12 < 30; ++var12) {
+         var15 = 0;
+         double var10 = 0.0;
+
+         for(int var13 = 0; var13 < var1; ++var13) {
+            if (var4[var13] > var10) {
+               var10 = var4[var13];
+               var15 = var13;
+            }
+         }
+
+         String var10001 = this.docName[var15];
+         System.out.println(var10001 + " " + var10);
+         var4[var15] = 0.0;
+      }
+
+   }
+
+   public static void main(String[] var0) {
+      if (var0.length != 1) {
+         System.err.println("Please give the name of the link file");
+      } else {
+         new PageRank(var0[0]);
+      }
+
+   }
+}

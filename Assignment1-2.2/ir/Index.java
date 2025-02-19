@@ -38,7 +38,8 @@ public interface Index {
 
     public Set<String> keySet();
 
-    public HashMap<Integer, Double> docVectorLengths = new HashMap<>();
-
+    public HashMap<Integer, Double> eLengths = new HashMap<>();
+    // public HashMap<Integer, Double> docVectorLengths = new HashMap<>();
+    public HashMap<Integer, HashMap<String, Integer>> doccounts = new HashMap<>();
 }
 

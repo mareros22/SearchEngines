@@ -35,16 +35,16 @@ public class HashedIndex implements Index {
         l = index.get(token);
         if(l != null){ // token has been inserted to index already
             p = l.get(l.size() - 1); // if there is an entry for this document it will be the most recent
-            if(docVectorLengths.get(docID) == null){
-                docVectorLengths.put(docID, (double)0);
+            if(eLengths.get(docID) == null){
+                eLengths.put(docID, (double)0);
             }
-            double currentLength = docVectorLengths.get(docID);
+            double currentLength = eLengths.get(docID);
             if(p.docID != docID){
                 p = new PostingsEntry(docID);
-                docVectorLengths.put(docID, currentLength + (2*l.size()) + 1);
+                eLengths.put(docID, currentLength + (2*l.size()) + 1);
             }else{
                 // System.out.println("duplicate docID " + docID);
-                docVectorLengths.put(docID, currentLength + (2*l.size()) + 1);
+                eLengths.put(docID, currentLength + (2*l.size()) + 1);
                 p.addToEntry(offset);
                 return; // document already indexed to this term
             }

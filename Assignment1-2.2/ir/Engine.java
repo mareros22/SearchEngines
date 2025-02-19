@@ -8,7 +8,11 @@
 package ir;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 
 /**
  *  This is the main class for the search engine.
@@ -58,6 +62,13 @@ public class Engine {
     /** For persistent indexes, we might not need to do any indexing. */
     boolean is_indexing = true;
 
+    String length_file = "index/lengths.txt";
+
+    boolean calculate_lengths;
+    
+    File lengths;
+
+
 
     /* ----------------------------------------------- */
 
@@ -81,12 +92,24 @@ public class Engine {
         if (is_indexing) {
             synchronized ( indexLock ) {
                 gui.displayInfoText( "Indexing, please wait..." );
+                lengths = new File(length_file);
+                calculate_lengths = !lengths.isFile();
+                if(calculate_lengths){
+                    System.out.println("Calculating Euclidean lengths");
+                }
                 long startTime = System.currentTimeMillis();
                 for ( int i=0; i<dirNames.size(); i++ ) {
                     File dokDir = new File( dirNames.get( i ));
-                    indexer.processFiles( dokDir, is_indexing );
+                    indexer.processFiles( dokDir, is_indexing, calculate_lengths, lengths);
                 }
+                if(calculate_lengths){
+                    calcLength();
+                }else{
+                    indexer.readEuclideanLengths();
+                }
+                System.out.println("Test: length of doc 0: " + index.eLengths.get(0));
                 long elapsedTime = System.currentTimeMillis() - startTime;
+                
                 gui.displayInfoText( String.format( "Indexing done in %.1f seconds.", elapsedTime/1000.0 ));
                 index.cleanup();
             }
@@ -131,10 +154,76 @@ public class Engine {
                 System.err.println( "Unknown option: " + args[i] );
                 break;
             }
-        }                   
+        }
+        
     }
 
 
+
+    public void calcLength(){
+        int numdocs = index.docNames.keySet().size();
+        System.out.println("Calclength " + numdocs);
+        EuclideanThread[] manager = new EuclideanThread[numdocs];
+        double doclength;
+        for(int i = 0; i < numdocs; i++){
+            EuclideanThread er = new EuclideanThread(i);
+            manager[i] = er;
+            er.run();
+        }
+        for(int j = 0; j < numdocs; j++){
+            try {
+                manager[j].join();
+                doclength = manager[j].getLength();
+                index.eLengths.put(j, doclength);   
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            
+        }
+        BufferedWriter writer;
+        try {
+            writer = new BufferedWriter(new FileWriter(lengths, true));
+            for(int docID : index.eLengths.keySet()){
+                doclength = index.eLengths.get(docID);
+                writer.write(docID + ";" + doclength + "\n");
+            }
+            writer.close();
+           
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public class EuclideanThread extends Thread {
+        int docID;
+        HashMap<String, Integer> wordcounts;
+        double doclength;
+        public EuclideanThread(int id){
+            docID = id;
+            wordcounts = index.doccounts.get(docID);
+            if(wordcounts == null){
+                System.out.println("DOCCOUNTS IS NULL: " + docID);
+            }
+            doclength = 0;
+        }
+        public void run() {
+            double tf, idf, df, N, tf_idf;
+            N = (double)index.docNames.keySet().size();
+            for(String word : wordcounts.keySet()){
+                tf = (double)wordcounts.get(word);
+                df = index.getPostings(word).size();
+                idf = Math.log(N/df);
+                tf_idf = tf * idf;
+                doclength += tf_idf * tf_idf;
+            }
+            doclength = Math.sqrt(doclength);
+            // index.eLengths.put(docID, doclength);
+        }
+
+        public double getLength(){
+            return doclength;
+        }
+    }
     /* ----------------------------------------------- */
 
 
